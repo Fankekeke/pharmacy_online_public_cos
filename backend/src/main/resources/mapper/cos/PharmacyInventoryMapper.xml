@@ -30,6 +30,9 @@
         <if test="pharmacyInventory.brand != null and pharmacyInventory.brand != ''">
             AND di.brand LIKE CONCAT('%',#{pharmacyInventory.brand},'%')
         </if>
+        <if test="pharmacyInventory.pharmacyId != null">
+            AND pi2.user_id = #{pharmacyInventory.pharmacyId}
+        </if>
     </select>
 
     <!-- 根据药房ID获取库存信息 -->

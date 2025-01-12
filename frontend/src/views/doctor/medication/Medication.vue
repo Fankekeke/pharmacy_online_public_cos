@@ -42,7 +42,8 @@
     </div>
     <div>
       <div class="operator">
-        <a-button type="primary" ghost @click="add">添加处方</a-button>
+<!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
+        <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -70,13 +71,14 @@
           <template>
             <a-tooltip>
               <template slot="title">
-                {{ record.content }}
+                {{ record.cause }}
               </template>
-              {{ record.content.slice(0, 30) }} ...
+              {{ record.cause.slice(0, 8) }} ...
             </a-tooltip>
           </template>
         </template>
         <template slot="operation" slot-scope="text, record">
+          <a-icon v-if="record.status == 0" type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改"></a-icon>
           <a-icon v-if="record.status == 1" type="cloud" @click="handleViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
@@ -157,20 +159,24 @@ export default {
     columns () {
       return [{
         title: '处方单号',
-        dataIndex: 'code'
+        dataIndex: 'code',
+        ellipsis: true
       }, {
         title: '病因',
         dataIndex: 'cause',
-        ellipsis: true
+        scopedSlots: {customRender: 'contentShow'}
       }, {
         title: '用户名称',
-        dataIndex: 'userName'
+        dataIndex: 'userName',
+        ellipsis: true
       }, {
         title: '电子邮箱',
-        dataIndex: 'mail'
+        dataIndex: 'mail',
+        ellipsis: true
       }, {
         title: '收获地址',
-        dataIndex: 'address'
+        dataIndex: 'address',
+        ellipsis: true
       }, {
         title: '出具人',
         dataIndex: 'checkIssuer',
@@ -180,8 +186,9 @@ export default {
           } else {
             return '- -'
           }
-        }
-      },  {
+        },
+        ellipsis: true
+      }, {
         title: '出具机构',
         dataIndex: 'checkAgency',
         customRender: (text, row, index) => {
@@ -190,7 +197,8 @@ export default {
           } else {
             return '- -'
           }
-        }
+        },
+        ellipsis: true
       }, {
         title: '发布时间',
         dataIndex: 'createDate',
@@ -200,7 +208,8 @@ export default {
           } else {
             return '- -'
           }
-        }
+        },
+        ellipsis: true
       }, {
         title: '状态',
         dataIndex: 'status',
@@ -357,7 +366,7 @@ export default {
       if (params.status === undefined) {
         delete params.status
       }
-      params.userId = this.currentUser.userId
+      params.pharmacyId = this.currentUser.userId
       this.$get('/cos/medication-info/page', {
         ...params
       }).then((r) => {

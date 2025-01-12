@@ -17,7 +17,8 @@
         phi.business_hours,
         phi.create_date,
         phi.legal_person,
-        phi.phone
+        phi.phone,
+        phi.user_id
         from
         pharmacy_info phi
         where

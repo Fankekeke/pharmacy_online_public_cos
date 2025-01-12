@@ -54,5 +54,11 @@ public class LogisticsInfo implements Serializable {
     @TableField(exist = false)
     private String userName;
 
+    /**
+     * 药店ID
+     */
+    @TableField(exist = false)
+    private Integer pharmacyId;
+
 
 }

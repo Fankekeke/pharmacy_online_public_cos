@@ -31,6 +31,9 @@
         <if test="staffInfo.status != null">
             AND si.status = #{staffInfo.status}
         </if>
+        <if test="staffInfo.pharmacyId != null">
+            AND pi.user_id = #{staffInfo.pharmacyId}
+        </if>
         order by
         si.create_date desc
     </select>

@@ -20,6 +20,8 @@
         (oi.id = li.order_id)
         left join user_info ui on
         (ui.id = oi.user_id)
+        left join pharmacy_info pi on
+        (pi.id = oi.pharmacy_id)
         where
         1 = 1
         and li.current_logistics = 1
@@ -28,6 +30,9 @@
         </if>
         <if test="logisticsInfo.userName != null and logisticsInfo.userName != ''">
             AND ui.name LIKE CONCAT('%',#{logisticsInfo.userName},'%')
+        </if>
+        <if test="logisticsInfo.pharmacyId != null and logisticsInfo.pharmacyId != ''">
+            AND pi.user_id = #{logisticsInfo.pharmacyId}
         </if>
         order by
         oi.create_date desc

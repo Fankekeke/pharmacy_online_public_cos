@@ -34,6 +34,9 @@
         <if test="inventoryStatistics.pharmacyName != null and inventoryStatistics.pharmacyName != ''">
             AND phi.name LIKE CONCAT('%',#{inventoryStatistics.pharmacyName},'%')
         </if>
+        <if test="inventoryStatistics.pharmacyId != null and inventoryStatistics.pharmacyId != ''">
+            AND phi.user_id = #{inventoryStatistics.pharmacyId}
+        </if>
         order by
         ls.create_date desc
     </select>

@@ -1,6 +1,6 @@
 <template>
   <a-drawer
-    title="药品采购"
+    title="处方开具"
     :maskClosable="false"
     width=1150
     placement="right"
@@ -9,35 +9,43 @@
     :visible="purchaseAddVisiable"
     style="height: calc(100% - 55px);overflow: auto;padding-bottom: 53px;">
     <a-form :form="form" layout="vertical">
-      <a-row :gutter="10">
+      <a-row :gutter="10" v-if="purchaseData != null">
         <a-divider orientation="left">
           <span style="font-size: 13px">基本信息</span>
         </a-divider>
-        <a-col :span="8">
-          <a-form-item label='供应商'>
-            <a-select v-decorator="[
-              'supplierId',
-              { rules: [{ required: true, message: '请输入所属供应商!' }] }
-              ]">
-              <a-select-option :value="item.id" v-for="(item, index) in supplierList" :key="index">{{ item.name }}</a-select-option>
-            </a-select>
+        <a-col :span="12">
+          <a-form-item label='处方标题' v-bind="formItemLayout">
+            <a-input disabled v-model="purchaseData.title"/>
           </a-form-item>
         </a-col>
-        <a-col :span="8">
-          <a-form-item label='选择药店'>
-            <a-select @change="pharmacyCheck" v-decorator="[
-              'pharmacyId',
-              { rules: [{ required: true, message: '请输入采购药店!' }] }
-              ]">
-              <a-select-option :value="item.id" v-for="(item, index) in pharmacyList" :key="index">{{ item.name }}</a-select-option>
-            </a-select>
+        <a-col :span="24">
+          <a-form-item label='病因' v-bind="formItemLayout">
+            <a-textarea :rows="6" disabled v-model="purchaseData.cause"/>
           </a-form-item>
         </a-col>
+<!--        <a-col :span="8">-->
+<!--          <a-form-item label='采购药店'>-->
+<!--            <a-select @change="pharmacyCheck" v-decorator="[-->
+<!--              'pharmacyId',-->
+<!--              { rules: [{ required: true, message: '请输入采购药店!' }] }-->
+<!--              ]">-->
+<!--              <a-select-option :value="item.id" v-for="(item, index) in pharmacyList" :key="index">{{ item.name }}</a-select-option>-->
+<!--            </a-select>-->
+<!--          </a-form-item>-->
+<!--        </a-col>-->
         <a-col :span="8">
-          <a-form-item label='采购人' v-bind="formItemLayout">
+          <a-form-item label='出具人' v-bind="formItemLayout">
             <a-input v-decorator="[
-            'purchaser',
-            { rules: [{ required: true, message: '请输入采购人!' }] }
+            'checkIssuer',
+            { rules: [{ required: true, message: '请输入出具人!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="8">
+          <a-form-item label='出具机构' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'checkAgency',
+            { rules: [{ required: true, message: '请输入出具机构!' }] }
             ]"/>
           </a-form-item>
         </a-col>
@@ -51,7 +59,7 @@
           <a-table :columns="columns" :data-source="dataList" :pagination="false">
             <template slot="nameShow" slot-scope="text, record">
               <a-select style="width: 100%" @change="handleChange($event, record)">
-                <a-select-option v-for="(item, index) in drugList" :key="index" :value="item.id">{{ item.name }}</a-select-option>
+                <a-select-option v-for="(item, index) in drugList" :key="index" :value="item.id">{{ item.drugName }}</a-select-option>
               </a-select>
             </template>
             <template slot="brandShow" slot-scope="text, record">
@@ -72,7 +80,7 @@
               <span>{{ record.dosageForm }}</span>
             </template>
             <template slot="reserveShow" slot-scope="text, record">
-              <a-input-number v-model="record.reserve" :min="1" :step="1"/>
+              <a-input-number v-model="record.total" :min="1" :step="1"/>
             </template>
             <template slot="priceShow" slot-scope="text, record">
               <span>{{ record.unitPrice }}元</span>
@@ -114,6 +122,9 @@ export default {
   props: {
     purchaseAddVisiable: {
       default: false
+    },
+    purchaseData: {
+      type: Object
     }
   },
   components: {
@@ -137,7 +148,7 @@ export default {
         scopedSlots: {customRender: 'nameShow'}
       }, {
         title: '数量',
-        dataIndex: 'reserve',
+        dataIndex: 'total',
         scopedSlots: {customRender: 'reserveShow'}
       }, {
         title: '所属品牌',
@@ -170,7 +181,6 @@ export default {
       stayAddress: '',
       childrenDrawer: false,
       pharmacyList: [],
-      supplierList: [],
       pharmacyInfo: null,
       dataList: [],
       drugList: []
@@ -178,13 +188,13 @@ export default {
   },
   mounted () {
     this.getSupplier()
-    this.getDrug()
-    this.getPharmacy()
+    this.queryPharmacyInfoByUser()
   },
   methods: {
-    getPharmacy () {
-      this.$get('/cos/pharmacy-info/list').then((r) => {
-        this.pharmacyList = r.data.data
+    queryPharmacyInfoByUser () {
+      this.$get('/cos/pharmacy-info/queryPharmacyInfoByUser', {userId: this.currentUser.userId}).then((r) => {
+        this.pharmacyInfo = r.data.data
+        this.getDrug(this.pharmacyInfo.id)
       })
     },
     handleChange (value, record) {
@@ -196,6 +206,7 @@ export default {
             record.dosageForm = e.dosageForm
             record.unitPrice = e.unitPrice
             record.drugId = e.drugId
+            record.pharmacyId = e.pharmacyId
             console.log(record)
           }
         })
@@ -205,22 +216,23 @@ export default {
       if (value) {
         this.pharmacyList.forEach(e => {
           if (e.id === value) {
+            this.getDrug(e.id)
             this.pharmacyInfo = e
           }
         })
       }
     },
     dataAdd () {
-      this.dataList.push({drugId: null, reserve: 1, brand: '', classification: '', dosageForm: '', unitPrice: ''})
+      this.dataList.push({drugId: null, total: 1, brand: '', classification: '', dosageForm: '', unitPrice: ''})
     },
-    getDrug () {
-      this.$get('/cos/drug-info/list').then((r) => {
+    getDrug (pharmacyId) {
+      this.$get(`/cos/pharmacy-inventory/detail/pharmacy/${pharmacyId}`).then((r) => {
         this.drugList = r.data.data
       })
     },
     getSupplier () {
-      this.$get('/cos/enterprise-info/list').then((r) => {
-        this.supplierList = r.data.data
+      this.$get('/cos/pharmacy-info/list').then((r) => {
+        this.pharmacyList = r.data.data
       })
     },
     handlerClosed (localPoint) {
@@ -277,14 +289,16 @@ export default {
     },
     handleSubmit () {
       if (this.dataList.length === 0) {
-        this.$message.warning('请添加采购信息')
+        this.$message.warning('请添加开具信息')
         return false
       }
       this.form.validateFields((err, values) => {
-        values.purchaseDrug = JSON.stringify(this.dataList)
+        values.drugString = JSON.stringify(this.dataList)
         if (!err) {
           this.loading = true
-          this.$post('/cos/purchase-info', {
+          values.id = this.purchaseData.id
+          values.userId = this.purchaseData.userId
+          this.$post('/cos/medication-info/checkMedication', {
             ...values
           }).then((r) => {
             this.reset()

@@ -3,9 +3,9 @@
     <a-row :gutter="8" class="head-info">
       <a-card class="head-info-card">
         <a-col :span="12">
-          <div class="head-info-avatar">
-            <img alt="头像" :src="avatar">
-          </div>
+<!--          <div class="head-info-avatar">-->
+<!--            <img alt="头像" :src="avatar">-->
+<!--          </div>-->
           <div class="head-info-count">
             <div class="head-info-welcome">
               {{welcomeMessage}}

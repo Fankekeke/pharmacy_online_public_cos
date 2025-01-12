@@ -7,29 +7,18 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="处方单号"
+                label="订单编号"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.code"/>
+                <a-input v-model="queryParams.orderCode"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="病因"
+                label="客户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.checkIssuer"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="内容"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-select v-model="queryParams.status" allowClear>
-                  <a-select-option value="0">未处理</a-select-option>
-                  <a-select-option value="1">已处理</a-select-option>
-                </a-select>
+                <a-input v-model="queryParams.userName"/>
               </a-form-item>
             </a-col>
           </div>
@@ -42,7 +31,7 @@
     </div>
     <div>
       <div class="operator">
-        <a-button type="primary" ghost @click="add">添加处方</a-button>
+        <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -54,83 +43,38 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
-        <template slot="titleShow" slot-scope="text, record">
-          <template>
-            <a-badge status="processing" v-if="record.rackUp === 1"/>
-            <a-badge status="error" v-if="record.rackUp === 0"/>
-            <a-tooltip>
-              <template slot="title">
-                {{ record.title }}
-              </template>
-              {{ record.title.slice(0, 8) }} ...
-            </a-tooltip>
-          </template>
-        </template>
         <template slot="contentShow" slot-scope="text, record">
           <template>
             <a-tooltip>
               <template slot="title">
                 {{ record.content }}
               </template>
-              {{ record.content.slice(0, 30) }} ...
+              {{ record.content.slice(0, 10) }} ...
             </a-tooltip>
           </template>
         </template>
-        <template slot="operation" slot-scope="text, record">
-          <a-icon v-if="record.status == 1" type="cloud" @click="handleViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
-        </template>
       </a-table>
     </div>
-    <medication-add
-      v-if="medicationAdd.visiable"
-      @close="handlemedicationAddClose"
-      @success="handlemedicationAddSuccess"
-      :medicationAddVisiable="medicationAdd.visiable">
-    </medication-add>
-    <purchase-add
-      v-if="purchaseAdd.visiable"
-      @close="handlepurchaseAddClose"
-      @success="handlepurchaseAddSuccess"
-      :purchaseAddVisiable="purchaseAdd.visiable"
-      :purchaseData="purchaseAdd.data">
-    </purchase-add>
-    <order-view
-      @close="handleorderViewClose"
-      :orderShow="orderView.visiable"
-      :medicationData="orderView.data">
-    </order-view>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import medicationAdd from './MedicationAdd.vue'
-import orderView from './OrderView.vue'
-import medicationEdit from './MedicationEdit.vue'
-import purchaseAdd from './PurchaseAdd.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')
 
 export default {
-  name: 'medication',
-  components: {medicationAdd, medicationEdit, purchaseAdd, orderView, RangeDate},
+  name: 'evaluate',
+  components: {RangeDate},
   data () {
     return {
       advanced: false,
-      medicationAdd: {
+      evaluateAdd: {
         visiable: false
       },
-      medicationEdit: {
+      evaluateEdit: {
         visiable: false
-      },
-      orderView: {
-        visiable: false,
-        data: null
-      },
-      purchaseAdd: {
-        visiable: false,
-        data: null
       },
       queryParams: {},
       filteredInfo: null,
@@ -156,43 +100,52 @@ export default {
     }),
     columns () {
       return [{
-        title: '处方单号',
+        title: '订单编号',
         dataIndex: 'code'
       }, {
-        title: '病因',
-        dataIndex: 'cause',
-        ellipsis: true
-      }, {
-        title: '用户名称',
-        dataIndex: 'userName'
-      }, {
-        title: '电子邮箱',
-        dataIndex: 'mail'
-      }, {
-        title: '收获地址',
-        dataIndex: 'address'
-      }, {
-        title: '出具人',
-        dataIndex: 'checkIssuer',
+        title: '订单总价',
+        dataIndex: 'totalCost',
         customRender: (text, row, index) => {
           if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      },  {
-        title: '出具机构',
-        dataIndex: 'checkAgency',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
+            return text + '元'
           } else {
             return '- -'
           }
         }
       }, {
-        title: '发布时间',
+        title: '评价客户',
+        dataIndex: 'name'
+      }, {
+        title: '药房名称',
+        dataIndex: 'pharmacyName'
+      }, {
+        title: '评价得分',
+        dataIndex: 'score',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + '分'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '评价内容',
+        dataIndex: 'content',
+        scopedSlots: { customRender: 'contentShow' }
+      }, {
+        title: '评价图片',
+        dataIndex: 'images',
+        customRender: (text, record, index) => {
+          if (!record.images) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+          </a-popover>
+        }
+      }, {
+        title: '评价时间',
         dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -201,23 +154,6 @@ export default {
             return '- -'
           }
         }
-      }, {
-        title: '状态',
-        dataIndex: 'status',
-        customRender: (text, row, index) => {
-          switch (text) {
-            case 0:
-              return <a-tag color='red'>未处理</a-tag>
-            case 1:
-              return <a-tag color='green'>已处理</a-tag>
-            default:
-              return '- -'
-          }
-        }
-      }, {
-        title: '操作',
-        dataIndex: 'operation',
-        scopedSlots: {customRender: 'operation'}
       }]
     }
   },
@@ -225,21 +161,6 @@ export default {
     this.fetch()
   },
   methods: {
-    handleViewOpen (row) {
-      this.orderView.data = row
-      this.orderView.visiable = true
-    },
-    handleorderViewClose () {
-      this.orderView.visiable = false
-    },
-    handlepurchaseAddClose () {
-      this.purchaseAdd.visiable = false
-    },
-    handlepurchaseAddSuccess () {
-      this.purchaseAdd.visiable = false
-      this.$message.success('新增成功')
-      this.search()
-    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
@@ -247,26 +168,26 @@ export default {
       this.advanced = !this.advanced
     },
     add () {
-      this.medicationAdd.visiable = true
+      this.evaluateAdd.visiable = true
     },
-    handlemedicationAddClose () {
-      this.medicationAdd.visiable = false
+    handleevaluateAddClose () {
+      this.evaluateAdd.visiable = false
     },
-    handlemedicationAddSuccess () {
-      this.medicationAdd.visiable = false
-      this.$message.success('新增处方成功')
+    handleevaluateAddSuccess () {
+      this.evaluateAdd.visiable = false
+      this.$message.success('新增评价成功')
       this.search()
     },
     edit (record) {
-      this.purchaseAdd.data = record
-      this.purchaseAdd.visiable = true
+      this.$refs.evaluateEdit.setFormValues(record)
+      this.evaluateEdit.visiable = true
     },
-    handlemedicationEditClose () {
-      this.medicationEdit.visiable = false
+    handleevaluateEditClose () {
+      this.evaluateEdit.visiable = false
     },
-    handlemedicationEditSuccess () {
-      this.medicationEdit.visiable = false
-      this.$message.success('修改处方成功')
+    handleevaluateEditSuccess () {
+      this.evaluateEdit.visiable = false
+      this.$message.success('修改评价成功')
       this.search()
     },
     handleDeptChange (value) {
@@ -284,7 +205,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/medication-info/' + ids).then(() => {
+          that.$delete('/cos/order-evaluate/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -354,11 +275,11 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      if (params.status === undefined) {
-        delete params.status
+      if (params.type === undefined) {
+        delete params.type
       }
-      params.userId = this.currentUser.userId
-      this.$get('/cos/medication-info/page', {
+      params.pharmacyId = this.currentUser.userId
+      this.$get('/cos/order-evaluate/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

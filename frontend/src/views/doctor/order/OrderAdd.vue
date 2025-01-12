@@ -1,45 +1,54 @@
 <template>
   <a-drawer
-    title="药品采购"
+    title="添加平台订单"
     :maskClosable="false"
     width=1150
     placement="right"
     :closable="false"
     @close="onClose"
-    :visible="purchaseAddVisiable"
+    :visible="orderAddShow"
     style="height: calc(100% - 55px);overflow: auto;padding-bottom: 53px;">
     <a-form :form="form" layout="vertical">
       <a-row :gutter="10">
         <a-divider orientation="left">
-          <span style="font-size: 13px">基本信息</span>
+          <span style="font-size: 13px">选择药房</span>
         </a-divider>
-        <a-col :span="8">
-          <a-form-item label='供应商'>
-            <a-select v-decorator="[
-              'supplierId',
-              { rules: [{ required: true, message: '请输入所属供应商!' }] }
-              ]">
-              <a-select-option :value="item.id" v-for="(item, index) in supplierList" :key="index">{{ item.name }}</a-select-option>
-            </a-select>
-          </a-form-item>
-        </a-col>
-        <a-col :span="8">
-          <a-form-item label='选择药店'>
+        <a-col :span="12">
+          <a-form-item label='药店'>
             <a-select @change="pharmacyCheck" v-decorator="[
               'pharmacyId',
-              { rules: [{ required: true, message: '请输入采购药店!' }] }
+              { rules: [{ required: true, message: '请输入所属药店!' }] }
               ]">
-              <a-select-option :value="item.id" v-for="(item, index) in pharmacyList" :key="index">{{ item.name }}</a-select-option>
+              <a-select-option :value="item.id" v-for="(item, index) in pharmacyList" :key="index">{{
+                  item.name
+                }}
+              </a-select-option>
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :span="8">
-          <a-form-item label='采购人' v-bind="formItemLayout">
-            <a-input v-decorator="[
-            'purchaser',
-            { rules: [{ required: true, message: '请输入采购人!' }] }
-            ]"/>
+        <a-col :span="12">
+          <a-form-item label='员工'>
+            <a-select v-decorator="[
+              'staffCode',
+              { rules: [{ required: true, message: '请输入所属员工!' }] }
+              ]">
+              <a-select-option :value="item.code" v-for="(item, index) in staffList" :key="index">{{
+                  item.name
+                }}
+              </a-select-option>
+            </a-select>
           </a-form-item>
+        </a-col>
+      </a-row>
+      <a-row :gutter="10" style="font-size: 13px;font-family: SimHei" v-if="pharmacyInfo != null">
+        <a-col :span="8"><b>营业时间：</b>
+          {{ pharmacyInfo.businessHours }}
+        </a-col>
+        <a-col :span="8"><b>药店编号：</b>
+          {{ pharmacyInfo.code }}
+        </a-col>
+        <a-col :span="8"><b>地址：</b>
+          {{ pharmacyInfo.address }}
         </a-col>
       </a-row>
       <br/>
@@ -51,7 +60,10 @@
           <a-table :columns="columns" :data-source="dataList" :pagination="false">
             <template slot="nameShow" slot-scope="text, record">
               <a-select style="width: 100%" @change="handleChange($event, record)">
-                <a-select-option v-for="(item, index) in drugList" :key="index" :value="item.id">{{ item.name }}</a-select-option>
+                <a-select-option v-for="(item, index) in drugList" :key="index" :value="item.drugId">{{
+                    item.drugName
+                  }}
+                </a-select-option>
               </a-select>
             </template>
             <template slot="brandShow" slot-scope="text, record">
@@ -72,7 +84,7 @@
               <span>{{ record.dosageForm }}</span>
             </template>
             <template slot="reserveShow" slot-scope="text, record">
-              <a-input-number v-model="record.reserve" :min="1" :step="1"/>
+              <a-input-number v-model="record.quantity" :min="1" :max="record.reserve" :step="1"/>
             </template>
             <template slot="priceShow" slot-scope="text, record">
               <span>{{ record.unitPrice }}元</span>
@@ -97,6 +109,7 @@
 import baiduMap from '@/utils/map/baiduMap'
 import drawerMap from '@/utils/map/searchmap/drawerMap'
 import {mapState} from 'vuex'
+
 function getBase64 (file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -105,14 +118,15 @@ function getBase64 (file) {
     reader.onerror = error => reject(error)
   })
 }
+
 const formItemLayout = {
-  labelCol: { span: 24 },
-  wrapperCol: { span: 24 }
+  labelCol: {span: 24},
+  wrapperCol: {span: 24}
 }
 export default {
-  name: 'purchaseAdd',
+  name: 'inventoryAdd',
   props: {
-    purchaseAddVisiable: {
+    orderAddShow: {
       default: false
     }
   },
@@ -125,7 +139,7 @@ export default {
     }),
     show: {
       get: function () {
-        return this.purchaseAddVisiable
+        return this.orderAddShow
       },
       set: function () {
       }
@@ -133,11 +147,11 @@ export default {
     columns () {
       return [{
         title: '药品名称',
-        dataIndex: 'name',
+        dataIndex: 'drugName',
         scopedSlots: {customRender: 'nameShow'}
       }, {
         title: '数量',
-        dataIndex: 'reserve',
+        dataIndex: 'quantity',
         scopedSlots: {customRender: 'reserveShow'}
       }, {
         title: '所属品牌',
@@ -158,6 +172,13 @@ export default {
       }]
     }
   },
+  watch: {
+    'orderAddShow': function (value) {
+      if (value) {
+        this.dataList = []
+      }
+    }
+  },
   data () {
     return {
       formItemLayout,
@@ -170,31 +191,28 @@ export default {
       stayAddress: '',
       childrenDrawer: false,
       pharmacyList: [],
-      supplierList: [],
       pharmacyInfo: null,
       dataList: [],
-      drugList: []
+      drugList: [],
+      staffList: [],
+      staffCode: ''
     }
   },
   mounted () {
-    this.getSupplier()
-    this.getDrug()
     this.getPharmacy()
+    this.getStaff()
   },
   methods: {
-    getPharmacy () {
-      this.$get('/cos/pharmacy-info/list').then((r) => {
-        this.pharmacyList = r.data.data
-      })
-    },
     handleChange (value, record) {
+      console.log(value)
       if (value) {
         this.drugList.forEach(e => {
-          if (e.id === value) {
+          if (e.drugId === value) {
             record.brand = e.brand
             record.classification = e.classification
             record.dosageForm = e.dosageForm
             record.unitPrice = e.unitPrice
+            record.reserve = e.reserve
             record.drugId = e.drugId
             console.log(record)
           }
@@ -205,22 +223,28 @@ export default {
       if (value) {
         this.pharmacyList.forEach(e => {
           if (e.id === value) {
+            this.getDrug(e.id)
             this.pharmacyInfo = e
           }
         })
       }
     },
     dataAdd () {
-      this.dataList.push({drugId: null, reserve: 1, brand: '', classification: '', dosageForm: '', unitPrice: ''})
+      this.dataList.push({drugId: null, quantity: 1, brand: '', classification: '', dosageForm: '', unitPrice: ''})
     },
-    getDrug () {
-      this.$get('/cos/drug-info/list').then((r) => {
+    getStaff (pharmacyId) {
+      this.$get(`/cos/staff-info/list`).then((r) => {
+        this.staffList = r.data.data
+      })
+    },
+    getDrug (pharmacyId) {
+      this.$get(`/cos/pharmacy-inventory/detail/pharmacy/${pharmacyId}`).then((r) => {
         this.drugList = r.data.data
       })
     },
-    getSupplier () {
-      this.$get('/cos/enterprise-info/list').then((r) => {
-        this.supplierList = r.data.data
+    getPharmacy () {
+      this.$get('/cos/pharmacy-info/list').then((r) => {
+        this.pharmacyList = r.data.data
       })
     },
     handlerClosed (localPoint) {
@@ -251,7 +275,7 @@ export default {
     showChildrenDrawer () {
       this.childrenDrawer = true
     },
-    onChildrenDrawerClose () {
+    onChildrenDrawerClos () {
       this.childrenDrawer = false
     },
     handleCancel () {
@@ -264,7 +288,7 @@ export default {
       this.previewImage = file.url || file.preview
       this.previewVisible = true
     },
-    picHandleChange ({ fileList }) {
+    picHandleChange ({fileList}) {
       this.fileList = fileList
     },
     reset () {
@@ -276,15 +300,11 @@ export default {
       this.$emit('close')
     },
     handleSubmit () {
-      if (this.dataList.length === 0) {
-        this.$message.warning('请添加采购信息')
-        return false
-      }
       this.form.validateFields((err, values) => {
-        values.purchaseDrug = JSON.stringify(this.dataList)
+        values.orderDetailList = JSON.stringify(this.dataList)
         if (!err) {
           this.loading = true
-          this.$post('/cos/purchase-info', {
+          this.$post('/cos/order-info/platform', {
             ...values
           }).then((r) => {
             this.reset()

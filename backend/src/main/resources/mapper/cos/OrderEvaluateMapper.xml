@@ -40,6 +40,9 @@
         <if test="orderEvaluate.userId != null ">
             AND ui.user_id = #{orderEvaluate.userId}
         </if>
+        <if test="orderEvaluate.pharmacyId != null">
+            AND phi.user_id = #{orderEvaluate.pharmacyId}
+        </if>
         order by
         oe.create_date desc
     </select>

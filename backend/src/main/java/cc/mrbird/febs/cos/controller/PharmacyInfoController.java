@@ -6,6 +6,7 @@ import cc.mrbird.febs.common.utils.R;
 import cc.mrbird.febs.cos.entity.PharmacyInfo;
 import cc.mrbird.febs.cos.service.IPharmacyInfoService;
 import cn.hutool.core.date.DateUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,17 @@ public class PharmacyInfoController {
     @GetMapping("/page")
     public R page(Page<PharmacyInfo> page, PharmacyInfo pharmacyInfo) {
         return R.ok(pharmacyInfoService.selectPharmacyPage(page, pharmacyInfo));
+    }
+
+    /**
+     * 根据用户查询药店信息
+     *
+     * @param userId 用户ID
+     * @return 结果
+     */
+    @GetMapping("/queryPharmacyInfoByUser")
+    public R queryPharmacyInfoByUser(@RequestParam("userId") Integer userId) {
+        return R.ok(pharmacyInfoService.getOne(Wrappers.<PharmacyInfo>lambdaQuery().eq(PharmacyInfo::getUserId, userId)));
     }
 
     /**

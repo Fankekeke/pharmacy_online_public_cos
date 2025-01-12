@@ -7,29 +7,10 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="处方单号"
+                label="药品名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.code"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="病因"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.checkIssuer"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="内容"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-select v-model="queryParams.status" allowClear>
-                  <a-select-option value="0">未处理</a-select-option>
-                  <a-select-option value="1">已处理</a-select-option>
-                </a-select>
+                <a-input v-model="queryParams.drugName"/>
               </a-form-item>
             </a-col>
           </div>
@@ -42,7 +23,7 @@
     </div>
     <div>
       <div class="operator">
-        <a-button type="primary" ghost @click="add">添加处方</a-button>
+<!--        <a-button type="primary" ghost @click="add">添加库存</a-button>-->
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -54,83 +35,45 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
-        <template slot="titleShow" slot-scope="text, record">
-          <template>
-            <a-badge status="processing" v-if="record.rackUp === 1"/>
-            <a-badge status="error" v-if="record.rackUp === 0"/>
-            <a-tooltip>
-              <template slot="title">
-                {{ record.title }}
-              </template>
-              {{ record.title.slice(0, 8) }} ...
-            </a-tooltip>
-          </template>
-        </template>
-        <template slot="contentShow" slot-scope="text, record">
+        <template slot="addressShow" slot-scope="text, record">
           <template>
             <a-tooltip>
               <template slot="title">
-                {{ record.content }}
+                {{ record.address }}
               </template>
-              {{ record.content.slice(0, 30) }} ...
+              {{ record.address.slice(0, 8) }} ...
             </a-tooltip>
           </template>
-        </template>
-        <template slot="operation" slot-scope="text, record">
-          <a-icon v-if="record.status == 1" type="cloud" @click="handleViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
-    <medication-add
-      v-if="medicationAdd.visiable"
-      @close="handlemedicationAddClose"
-      @success="handlemedicationAddSuccess"
-      :medicationAddVisiable="medicationAdd.visiable">
-    </medication-add>
-    <purchase-add
-      v-if="purchaseAdd.visiable"
-      @close="handlepurchaseAddClose"
-      @success="handlepurchaseAddSuccess"
-      :purchaseAddVisiable="purchaseAdd.visiable"
-      :purchaseData="purchaseAdd.data">
-    </purchase-add>
-    <order-view
-      @close="handleorderViewClose"
-      :orderShow="orderView.visiable"
-      :medicationData="orderView.data">
-    </order-view>
+    <inventory-add
+      v-if="inventoryAdd.visiable"
+      @close="handleinventoryAddClose"
+      @success="handleinventoryAddSuccess"
+      :inventoryAddVisiable="inventoryAdd.visiable">
+    </inventory-add>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import medicationAdd from './MedicationAdd.vue'
-import orderView from './OrderView.vue'
-import medicationEdit from './MedicationEdit.vue'
-import purchaseAdd from './PurchaseAdd.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
+import inventoryAdd from './InventoryAdd'
 moment.locale('zh-cn')
 
 export default {
-  name: 'medication',
-  components: {medicationAdd, medicationEdit, purchaseAdd, orderView, RangeDate},
+  name: 'inventory',
+  components: {inventoryAdd, RangeDate},
   data () {
     return {
       advanced: false,
-      medicationAdd: {
+      inventoryAdd: {
         visiable: false
       },
-      medicationEdit: {
+      inventoryEdit: {
         visiable: false
-      },
-      orderView: {
-        visiable: false,
-        data: null
-      },
-      purchaseAdd: {
-        visiable: false,
-        data: null
       },
       queryParams: {},
       filteredInfo: null,
@@ -156,68 +99,58 @@ export default {
     }),
     columns () {
       return [{
-        title: '处方单号',
-        dataIndex: 'code'
+        title: '药店名称',
+        dataIndex: 'pharmacyName'
       }, {
-        title: '病因',
-        dataIndex: 'cause',
-        ellipsis: true
+        title: '药店编号',
+        dataIndex: 'pharmacyCode'
       }, {
-        title: '用户名称',
-        dataIndex: 'userName'
+        title: '药品名称',
+        dataIndex: 'drugName'
       }, {
-        title: '电子邮箱',
-        dataIndex: 'mail'
+        title: '品牌',
+        dataIndex: 'brand'
       }, {
-        title: '收获地址',
-        dataIndex: 'address'
-      }, {
-        title: '出具人',
-        dataIndex: 'checkIssuer',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      },  {
-        title: '出具机构',
-        dataIndex: 'checkAgency',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
+        title: '药品图片',
+        dataIndex: 'images',
+        customRender: (text, record, index) => {
+          if (!record.images) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+          </a-popover>
         }
       }, {
-        title: '发布时间',
-        dataIndex: 'createDate',
+        title: '数量',
+        dataIndex: 'reserve',
         customRender: (text, row, index) => {
           if (text !== null) {
-            return text
+            return text + '件'
           } else {
             return '- -'
           }
         }
       }, {
-        title: '状态',
-        dataIndex: 'status',
+        title: '所属分类',
+        dataIndex: 'category',
         customRender: (text, row, index) => {
           switch (text) {
-            case 0:
-              return <a-tag color='red'>未处理</a-tag>
             case 1:
-              return <a-tag color='green'>已处理</a-tag>
+              return <a-tag>可卡因</a-tag>
+            case 2:
+              return <a-tag>维生素制剂</a-tag>
+            case 3:
+              return <a-tag>鱼肝油</a-tag>
+            case 4:
+              return <a-tag>药物饮料</a-tag>
+            case 5:
+              return <a-tag>膳食纤维</a-tag>
             default:
               return '- -'
           }
         }
-      }, {
-        title: '操作',
-        dataIndex: 'operation',
-        scopedSlots: {customRender: 'operation'}
       }]
     }
   },
@@ -225,21 +158,6 @@ export default {
     this.fetch()
   },
   methods: {
-    handleViewOpen (row) {
-      this.orderView.data = row
-      this.orderView.visiable = true
-    },
-    handleorderViewClose () {
-      this.orderView.visiable = false
-    },
-    handlepurchaseAddClose () {
-      this.purchaseAdd.visiable = false
-    },
-    handlepurchaseAddSuccess () {
-      this.purchaseAdd.visiable = false
-      this.$message.success('新增成功')
-      this.search()
-    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
@@ -247,26 +165,26 @@ export default {
       this.advanced = !this.advanced
     },
     add () {
-      this.medicationAdd.visiable = true
+      this.inventoryAdd.visiable = true
     },
-    handlemedicationAddClose () {
-      this.medicationAdd.visiable = false
+    handleinventoryAddClose () {
+      this.inventoryAdd.visiable = false
     },
-    handlemedicationAddSuccess () {
-      this.medicationAdd.visiable = false
-      this.$message.success('新增处方成功')
+    handleinventoryAddSuccess () {
+      this.inventoryAdd.visiable = false
+      this.$message.success('新增库存成功')
       this.search()
     },
     edit (record) {
-      this.purchaseAdd.data = record
-      this.purchaseAdd.visiable = true
+      this.$refs.inventoryEdit.setFormValues(record)
+      this.inventoryEdit.visiable = true
     },
-    handlemedicationEditClose () {
-      this.medicationEdit.visiable = false
+    handleinventoryEditClose () {
+      this.inventoryEdit.visiable = false
     },
-    handlemedicationEditSuccess () {
-      this.medicationEdit.visiable = false
-      this.$message.success('修改处方成功')
+    handleinventoryEditSuccess () {
+      this.inventoryEdit.visiable = false
+      this.$message.success('修改库存成功')
       this.search()
     },
     handleDeptChange (value) {
@@ -284,7 +202,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/medication-info/' + ids).then(() => {
+          that.$delete('/cos/pharmacy-inventory/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -354,11 +272,11 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      if (params.status === undefined) {
-        delete params.status
+      if (params.type === undefined) {
+        delete params.type
       }
-      params.userId = this.currentUser.userId
-      this.$get('/cos/medication-info/page', {
+      params.pharmacyId = this.currentUser.userId
+      this.$get('/cos/pharmacy-inventory/page', {
         ...params
       }).then((r) => {
         let data = r.data.data
