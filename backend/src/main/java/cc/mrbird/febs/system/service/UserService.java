@@ -1,6 +1,7 @@
 package cc.mrbird.febs.system.service;
 
 import cc.mrbird.febs.common.domain.QueryRequest;
+import cc.mrbird.febs.cos.entity.PharmacyInfo;
 import cc.mrbird.febs.system.domain.User;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -91,6 +92,14 @@ public interface UserService extends IService<User> {
      * @param password 密码
      */
     void registUser(String username, String password, String name) throws Exception;
+
+    /**
+     * 注册医生
+     *
+     * @param username 用户名
+     * @param password 密码
+     */
+    void registPharmacy(String username, String password, PharmacyInfo pharmacyInfo) throws Exception;
 
     /**
      * 重置密码
