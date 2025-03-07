@@ -163,7 +163,7 @@ public class PharmacyInfoController {
         pharmacyInfo.setCode("PM-" + System.currentTimeMillis());
         pharmacyInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         userService.registPharmacy(pharmacyInfo.getCode(), "1234qwer", pharmacyInfo);
-        return R.ok(pharmacyInfoService.save(pharmacyInfo));
+        return R.ok(true);
     }
 
     /**

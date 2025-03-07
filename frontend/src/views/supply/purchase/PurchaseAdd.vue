@@ -195,7 +195,7 @@ export default {
             record.classification = e.classification
             record.dosageForm = e.dosageForm
             record.unitPrice = e.unitPrice
-            record.drugId = e.drugId
+            record.drugId = e.id
             console.log(record)
           }
         })
