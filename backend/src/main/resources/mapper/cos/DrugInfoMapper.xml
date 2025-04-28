@@ -23,6 +23,7 @@
         manufacturer,
         unit_price,
         create_date,
+        prescription_flag,
         images
         from
         drug_info

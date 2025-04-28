@@ -79,6 +79,17 @@
             ]"/>
           </a-form-item>
         </a-col>
+        <a-col :span="6">
+          <a-form-item label='是否处方药' v-bind="formItemLayout">
+            <a-select v-decorator="[
+              'prescriptionFlag',
+              { rules: [{ required: true, message: '请输入是否处方药!' }] }
+              ]">
+              <a-select-option value="0">否</a-select-option>
+              <a-select-option value="1">是</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
         <a-col :span="12">
           <a-form-item label='适用症状' v-bind="formItemLayout">
             <a-input v-decorator="[
@@ -238,7 +249,7 @@ export default {
     },
     setFormValues ({...drug}) {
       this.rowId = drug.id
-      let fields = ['name', 'brand', 'category', 'classification', 'commonName', 'dosageForm', 'usages', 'applicableSymptoms', 'applicableDisease', 'packingList', 'dosageUse', 'validityPeriod', 'approvalNumber', 'manufacturer', 'unitPrice', 'images']
+      let fields = ['prescriptionFlag', 'name', 'brand', 'category', 'classification', 'commonName', 'dosageForm', 'usages', 'applicableSymptoms', 'applicableDisease', 'packingList', 'dosageUse', 'validityPeriod', 'approvalNumber', 'manufacturer', 'unitPrice', 'images']
       let obj = {}
       Object.keys(drug).forEach((key) => {
         if (key === 'images') {

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.mrbird.febs.cos.dao.LeaveCommentsMapper">
+
+    <!-- 分页获取留言信息 -->
+    <select id="selectCommentPage" resultType="java.util.LinkedHashMap">
+        select
+        ci.id,
+        ci.user_id,
+        ci.content,
+        ci.images,
+        ci.status,
+        ci.create_date,
+        ci.del_flag,
+        si.code as staffCode,
+        si.name as staffName,
+        si.images as staffImages,
+        pi.name AS enterpriseName
+        from
+        leave_comments ci
+        left join staff_info si on (si.id = ci.user_id)
+        left join pharmacy_info pi on (pi.id = si.pharmacy_id)
+        where 1 = 1
+        <if test="leaveComments.staffName != null and leaveComments.staffName != ''">
+            AND si.name LIKE CONCAT('%',#{leaveComments.staffName},'%')
+        </if>
+        <if test="leaveComments.status != null and leaveComments.status != ''">
+            AND lc.status = #{leaveComments.status}
+        </if>
+        <if test="leaveComments.staffId != null and leaveComments.staffId != ''">
+            AND si.user_id = #{leaveComments.staffId}
+        </if>
+        <if test="leaveComments.enterpriseId != null and leaveComments.enterpriseId != ''">
+            AND pi.user_id = #{leaveComments.enterpriseId}
+        </if>
+        order by ci.create_date desc
+    </select>
+</mapper>

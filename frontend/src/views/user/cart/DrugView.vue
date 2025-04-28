@@ -58,6 +58,12 @@
         </a-col>
         <br/>
         <br/>
+        <a-col :span="24"><b>是否处方：</b>
+          <span style="color: green" v-if="drugData.prescriptionFlag == 0">否</span>
+          <span style="color: red" v-if="drugData.prescriptionFlag == 1">是</span>
+        </a-col>
+        <br/>
+        <br/>
         <a-col :span="24"><b>适用症状：</b>
           {{ drugInfo.applicableSymptoms }}
         </a-col>
