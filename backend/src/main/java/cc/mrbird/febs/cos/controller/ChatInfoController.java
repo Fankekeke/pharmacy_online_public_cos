@@ -4,10 +4,12 @@ package cc.mrbird.febs.cos.controller;
 import cc.mrbird.febs.common.utils.R;
 import cc.mrbird.febs.cos.entity.ChatInfo;
 import cc.mrbird.febs.cos.entity.EnterpriseInfo;
-import cc.mrbird.febs.cos.entity.ExpertInfo;
+import cc.mrbird.febs.cos.entity.PharmacyInfo;
+import cc.mrbird.febs.cos.entity.UserInfo;
 import cc.mrbird.febs.cos.service.IChatInfoService;
 import cc.mrbird.febs.cos.service.IEnterpriseInfoService;
-import cc.mrbird.febs.cos.service.IExpertInfoService;
+import cc.mrbird.febs.cos.service.IPharmacyInfoService;
+import cc.mrbird.febs.cos.service.IUserInfoService;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -28,9 +30,9 @@ public class ChatInfoController {
 
     private final IChatInfoService chatInfoService;
 
-    private final IExpertInfoService expertInfoService;
+    private final IUserInfoService userInfoService;
 
-    private final IEnterpriseInfoService enterpriseInfoService;
+    private final IPharmacyInfoService pharmacyInfoService;
 
     /**
      * 分页获取技术沟通信息
@@ -54,11 +56,11 @@ public class ChatInfoController {
     public R selectContactPerson(@RequestParam("userId") Integer userId, @RequestParam("flag") Integer flag) {
         String code = null;
         if (flag == 2) {
-            EnterpriseInfo enterpriseInfo = enterpriseInfoService.getOne(Wrappers.<EnterpriseInfo>lambdaQuery().eq(EnterpriseInfo::getUserId, userId));
-            code = enterpriseInfo.getCode();
+            PharmacyInfo pharmacyInfo = pharmacyInfoService.getOne(Wrappers.<PharmacyInfo>lambdaQuery().eq(PharmacyInfo::getUserId, userId));
+            code = pharmacyInfo.getCode();
         } else {
-            ExpertInfo enterpriseInfo = expertInfoService.getOne(Wrappers.<ExpertInfo>lambdaQuery().eq(ExpertInfo::getUserId, userId));
-            code = enterpriseInfo.getCode();
+            UserInfo userInfo = userInfoService.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
+            code = userInfo.getCode();
         }
         return R.ok(chatInfoService.selectContactPerson(code, flag));
     }
@@ -66,7 +68,7 @@ public class ChatInfoController {
     /**
      * 查询聊天记录
      *
-     * @param expertCode     专家编号
+     * @param expertCode     用户编号
      * @param enterpriseCode 企业编号
      * @return 结果
      */
@@ -86,32 +88,13 @@ public class ChatInfoController {
     }
 
     /**
-     * 新增技术沟通信息
+     * 新增沟通信息
      *
-     * @param chatInfo 技术沟通信息
+     * @param chatInfo 沟通信息
      * @return 结果
      */
     @PostMapping
     public R save(ChatInfo chatInfo) {
-        NotifyInfo notifyInfo = new NotifyInfo();
-        notifyInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
-        notifyInfo.setDelFlag(0);
-        if (chatInfo.getType() == 1) {
-            notifyInfo.setUserCode(chatInfo.getEnterpriseCode());
-            notifyInfo.setContent("你好，收到学生发来消息，" + chatInfo.getContent());
-            EnterpriseInfo enterpriseInfo = enterpriseInfoService.getOne(Wrappers.<EnterpriseInfo>lambdaQuery().eq(EnterpriseInfo::getCode, chatInfo.getEnterpriseCode()));
-            if (enterpriseInfo != null) {
-                notifyInfo.setName(enterpriseInfo.getName());
-            }
-        } else {
-            notifyInfo.setUserCode(chatInfo.getExpertCode());
-            notifyInfo.setContent("你好，收到企业发来消息，" + chatInfo.getContent());
-            ExpertInfo expertInfo = expertInfoService.getOne(Wrappers.<ExpertInfo>lambdaQuery().eq(ExpertInfo::getCode, chatInfo.getExpertCode()));
-            if (expertInfo != null) {
-                notifyInfo.setName(expertInfo.getName());
-            }
-        }
-        notifyInfoService.save(notifyInfo);
         chatInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         return R.ok(chatInfoService.save(chatInfo));
     }
@@ -124,29 +107,10 @@ public class ChatInfoController {
      */
     @PostMapping("/saveFirst")
     public R saveFirst(ChatInfo chatInfo) {
-        NotifyInfo notifyInfo = new NotifyInfo();
-        notifyInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
-
-        notifyInfo.setDelFlag(0);
         if (chatInfo.getType() == 1) {
-            ExpertInfo expertInfo = expertInfoService.getOne(Wrappers.<ExpertInfo>lambdaQuery().eq(ExpertInfo::getUserId, chatInfo.getExpertId()));
-            chatInfo.setExpertCode(expertInfo.getCode());
-
-            notifyInfo.setUserCode(chatInfo.getEnterpriseCode());
-            notifyInfo.setContent("你好，收到学生发来消息，" + chatInfo.getContent());
-            EnterpriseInfo enterpriseInfo = enterpriseInfoService.getOne(Wrappers.<EnterpriseInfo>lambdaQuery().eq(EnterpriseInfo::getCode, chatInfo.getEnterpriseCode()));
-            if (enterpriseInfo != null) {
-                notifyInfo.setName(enterpriseInfo.getName());
-            }
-        } else {
-            notifyInfo.setUserCode(chatInfo.getExpertCode());
-            notifyInfo.setContent("你好，收到企业发来消息，" + chatInfo.getContent());
-            ExpertInfo expertInfo = expertInfoService.getOne(Wrappers.<ExpertInfo>lambdaQuery().eq(ExpertInfo::getCode, chatInfo.getExpertCode()));
-            if (expertInfo != null) {
-                notifyInfo.setName(expertInfo.getName());
-            }
+            UserInfo userInfo = userInfoService.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, chatInfo.getExpertId()));
+            chatInfo.setUserCode(userInfo.getCode());
         }
-        notifyInfoService.save(notifyInfo);
         chatInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         return R.ok(chatInfoService.save(chatInfo));
     }

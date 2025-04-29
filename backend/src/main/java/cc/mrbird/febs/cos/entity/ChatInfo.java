@@ -29,17 +29,17 @@ public class ChatInfo implements Serializable {
     private Integer id;
 
     /**
-     * 专家编号
+     * 用户编号
      */
-    private String expertCode;
+    private String userCode;
 
     /**
      * 企业编号
      */
-    private String enterpriseCode;
+    private String pharmacyCode;
 
     /**
-     * 发送类型（1.专家发企业收 2企业发专家收）
+     * 发送类型（1.用户发企业收 2企业发用户收）
      */
     private Integer type;
 
@@ -57,10 +57,10 @@ public class ChatInfo implements Serializable {
     private String createDate;
 
     @TableField(exist = false)
-    private String expertName;
+    private String userName;
 
     @TableField(exist = true)
-    private String enterpriseName;
+    private String pharmacyName;
 
     @TableField(exist = true)
     private String abbreviation;

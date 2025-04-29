@@ -29,7 +29,7 @@ public interface IChatInfoService extends IService<ChatInfo> {
      * 根据用户编号获取联系人
      *
      * @param userCode 用户编号
-     * @param flag     1.专家 2.企业
+     * @param flag     1.用户 2.企业
      * @return 结果
      */
     List<LinkedHashMap<String, Object>> selectContactPerson(String userCode, Integer flag);
@@ -37,7 +37,7 @@ public interface IChatInfoService extends IService<ChatInfo> {
     /**
      * 查询聊天记录
      *
-     * @param expertCode     专家编号
+     * @param expertCode     用户编号
      * @param enterpriseCode 企业编号
      * @return 结果
      */
