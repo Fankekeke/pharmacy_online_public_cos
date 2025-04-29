@@ -50,6 +50,8 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     private final StaffInfoMapper staffInfoMapper;
 
+    private final IDrugInfoService drugInfoService;
+
     /**
      * 分页获取订单信息
      *
@@ -201,6 +203,10 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         }
         // 获取订单信息
         List<OrderSubVo> orderSubVos = JSONUtil.toList(orderDetailVo.getDrugString(), OrderSubVo.class);
+        List<Integer> drugIds = orderSubVos.stream().map(OrderSubVo::getDrugId).distinct().collect(Collectors.toList());
+        List<DrugInfo> drugInfoList = drugInfoService.list(Wrappers.<DrugInfo>lambdaQuery().in(DrugInfo::getId, drugIds));
+        Map<Integer, DrugInfo> drugMap = drugInfoList.stream().collect(Collectors.toMap(DrugInfo::getId, e -> e));
+
         // 根据药店分组
         Map<Integer, List<OrderSubVo>> orderSubMap = orderSubVos.stream().collect(Collectors.groupingBy(OrderSubVo::getPharmacyId));
         // 设置要添加订单
@@ -227,6 +233,11 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                 orderDetail.setAllPrice(orderDetail.getUnitPrice().multiply(orderSubItem.getTotal()));
                 totalCost = totalCost.add(orderDetail.getAllPrice());
                 orderDetailList.add(orderDetail);
+                // 判断是否有处方药
+                DrugInfo drugInfo = drugMap.get(orderSubItem.getDrugId());
+                if (drugInfo != null && drugInfo.getPrescriptionFlag() != null && "1".equals(drugInfo.getPrescriptionFlag())) {
+                    orderItem.setOrderStatus(-1);
+                }
             }
             orderItem.setTotalCost(totalCost);
             this.updateById(orderItem);

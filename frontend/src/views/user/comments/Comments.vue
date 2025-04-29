@@ -5,14 +5,6 @@
       <a-form layout="horizontal">
         <a-row :gutter="15">
           <div :class="advanced ? null: 'fold'">
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="员工名称"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.staffName"/>
-              </a-form-item>
-            </a-col>
           </div>
           <span style="float: right; margin-top: 3px;">
             <a-button type="primary" @click="search">查询</a-button>
@@ -114,24 +106,20 @@ export default {
         ellipsis: true,
         dataIndex: 'staffName'
       }, {
-        title: '员工头像',
-        dataIndex: 'staffImages',
-        customRender: (text, record, index) => {
-          if (!record.staffImages) return <a-avatar shape="square" icon="user" />
-          return <a-popover>
-            <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.staffImages.split(',')[0] } />
-            </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.staffImages.split(',')[0] } />
-          </a-popover>
-        }
-      }, {
-        title: '所属药店',
+        title: '联系方式',
+        dataIndex: 'staffPhone',
         ellipsis: true,
-        dataIndex: 'enterpriseName'
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
       }, {
         title: '留言内容',
         dataIndex: 'content',
+        ellipsis: true,
         scopedSlots: { customRender: 'contentShow' }
       }, {
         title: '图片',

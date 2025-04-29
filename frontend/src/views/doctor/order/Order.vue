@@ -57,6 +57,7 @@
         <template slot="operation" slot-scope="text, record">
           <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情"></a-icon>
           <a-icon v-if="record.orderStatus == 1" type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="orderAuditOpen(record)" title="修 改" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.orderStatus == -1" type="form" @click="orderAuditCheck(record)" title="修 改" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
@@ -200,6 +201,8 @@ export default {
         dataIndex: 'orderStatus',
         customRender: (text, row, index) => {
           switch (text) {
+            case -1:
+              return <a-tag>待审核</a-tag>
             case 0:
               return <a-tag>待付款</a-tag>
             case 1:
@@ -240,6 +243,26 @@ export default {
     orderAuditOpen (row) {
       this.orderAuditView.data = row
       this.orderAuditView.visiable = true
+    },
+    orderAuditCheck (row) {
+      let that = this
+      this.$confirm({
+        title: '处方审核?',
+        content: '当您点击确定按钮后，这条记录将会审核通过',
+        centered: true,
+        onOk () {
+          that.$get('/cos/order-info/edit/status', {
+            orderId: row.id,
+            status: 0
+          }).then(() => {
+            that.$message.success('审核成功')
+            that.search()
+          })
+        },
+        onCancel () {
+          that.selectedRowKeys = []
+        }
+      })
     },
     orderViewOpen (row) {
       this.orderView.data = row

@@ -14,12 +14,10 @@
         ci.del_flag,
         si.code as staffCode,
         si.name as staffName,
-        si.images as staffImages,
-        pi.name AS enterpriseName
+        si.phone as staffPhone
         from
         leave_comments ci
-        left join staff_info si on (si.id = ci.user_id)
-        left join pharmacy_info pi on (pi.id = si.pharmacy_id)
+        left join user_info si on (si.id = ci.user_id)
         where 1 = 1
         <if test="leaveComments.staffName != null and leaveComments.staffName != ''">
             AND si.name LIKE CONCAT('%',#{leaveComments.staffName},'%')

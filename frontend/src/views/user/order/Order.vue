@@ -200,6 +200,8 @@ export default {
         dataIndex: 'orderStatus',
         customRender: (text, row, index) => {
           switch (text) {
+            case -1:
+              return <a-tag>待审核</a-tag>
             case 0:
               return <a-tag>待付款</a-tag>
             case 1:
