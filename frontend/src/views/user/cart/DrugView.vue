@@ -132,6 +132,7 @@
 
     </div>
     <div class="drawer-bootom-button">
+      <a-button @click="userChat" type="primary">联系药店</a-button>
       <a-popconfirm title="确定放弃编辑？" @confirm="onClose" okText="确定" cancelText="取消">
         <a-button style="margin-right: .8rem">取消</a-button>
       </a-popconfirm>
@@ -244,6 +245,17 @@ export default {
     },
     onClose () {
       this.$emit('close')
+    },
+    userChat () {
+      this.$post(`/cos/chat-info/saveFirst`, {
+        expertId: this.currentUser.userId,
+        pharmacyCode: this.pharmacyInfo.code,
+        type: 1,
+        content: '你好'
+      }).then((r) => {
+        this.$emit('close')
+        this.$router.push('/user/chat')
+      })
     },
     handleSubmit () {
       this.drugData.total = this.value

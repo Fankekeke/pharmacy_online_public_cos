@@ -86,7 +86,6 @@
             mi.content,
             mi.create_date,
             ei.name as expertName,
-            ei.images as expertImages,
             ei2.name as enterpriseName,
             ei2.images as enterpriseImages
         from
