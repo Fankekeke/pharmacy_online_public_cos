@@ -2,17 +2,10 @@
   <a-row style="width: 100%;" :gutter="20">
     <a-col :span="4">
       <a-menu mode="inline" style="width: 100%;margin-top: 30px" v-if="contactList.length !== 0">
-        <a-menu-item :key="index" style="height: 80px;margin: 0 auto;text-align: center;line-height: 80px" v-for="(item, index) in contactList" @click="onChange(item)">
-          <a-avatar
-            :size="46"
-            shape="square"
-            icon="user"
-            :src="'http://127.0.0.1:9527/imagesWeb/' + item.images"
-          />
+        <a-menu-item :key="index" style="height: 80px;margin: 0 auto;text-align: left;line-height: 80px" v-for="(item, index) in contactList" @click="onChange(item)">
           <span style="margin-left: 35px;font-size: 15px">
             {{ item.name }}
           </span>
-          <span style="font-size: 13px">【{{ item.position }}】</span>
         </a-menu-item>
       </a-menu>
       <div style="text-align: center;margin-top: 50px" v-else>
@@ -29,7 +22,7 @@
             :data-source="chatList"
           >
             <a-list-item slot="renderItem" slot-scope="item, index">
-              <a-comment :author="item.type == 1 ? item.expertName : item.enterpriseName" :avatar="'http://127.0.0.1:9527/imagesWeb/' + (item.type == 1 ? item.expertImages : item.enterpriseImages)">
+              <a-comment :author="item.type == 1 ? item.expertName : item.enterpriseName">
                 <p slot="content">
                   {{ item.content }}
                 </p>
@@ -90,8 +83,8 @@ export default {
     onChange (item) {
       this.currentItem = item
       this.$get(`/cos/chat-info/record`, {
-        expertCode: item.expertCode,
-        enterpriseCode: item.enterpriseCode
+        expertCode: item.userCode,
+        enterpriseCode: item.pharmacyCode
       }).then((r) => {
         this.chatList = r.data.data
         console.log(this.chatList)
@@ -103,8 +96,8 @@ export default {
         return false
       }
       this.$post(`/cos/chat-info`, {
-        expertCode: this.currentItem.expertCode,
-        enterpriseCode: this.currentItem.enterpriseCode,
+        userCode: this.currentItem.userCode,
+        pharmacyCode: this.currentItem.pharmacyCode,
         type: 2,
         content: this.contentValue
       }).then((r) => {
@@ -116,5 +109,11 @@ export default {
 }
 </script>
 <style scoped>
+  /deep/ .ant-list-item {
+    padding: 0;
+  }
 
+  /deep/ .ant-comment-inner {
+    padding: 15px 0 0 0;
+  }
 </style>

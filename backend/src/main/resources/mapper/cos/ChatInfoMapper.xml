@@ -46,7 +46,7 @@
         </if>
         <if test="flag != null and flag == 2">
             ei.name,
-            ei.images,
+            ei.phone
         </if>
         from
         chat_info ci
