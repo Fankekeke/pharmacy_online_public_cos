@@ -1,6 +1,8 @@
 server:
   port: 9527
 
+ai-api-key: xxxx
+
 spring:
   mail:
     host: smtp.qq.com #发送邮件服务器
