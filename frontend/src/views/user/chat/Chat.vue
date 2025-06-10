@@ -14,7 +14,7 @@
       </div>
     </a-col>
     <a-col :span="20">
-      <div style="background:#ECECEC; padding:30px">
+      <div style="background:#ECECEC; padding:15px">
         <a-card>
           <a-list
             class="comment-list"
@@ -23,9 +23,10 @@
           >
             <a-list-item slot="renderItem" slot-scope="item, index">
               <a-comment style="margin-left: 25px" :author="item.type == 1 ? item.expertName : item.enterpriseName">
-                <p slot="content">
-                  {{ item.content }}
+                <p slot="content" v-if="item.content.includes('SA')">
+                  <img alt="example" style="width: 100%" :src="'http://127.0.0.1:9527/imagesWeb/' + item.content"/>
                 </p>
+                <p slot="content" v-else style="padding: 10px 15px 0 15px">{{ item.content }}</p>
                 <a-tooltip slot="datetime" :title="item.createDate">
                   <span>{{ item.createDate }}</span>
                 </a-tooltip>
@@ -39,8 +40,17 @@
               </a-form-item>
               <a-form-item>
                 <a-button html-type="submit" type="primary" @click="handleSubmit">
-                  Add Comment
+                  添加回复
                 </a-button>
+                <a-upload
+                  v-if="uploadShow"
+                  style="margin-left: 20px"
+                  name="avatar"
+                  action="http://127.0.0.1:9527/file/fileUpload/"
+                  @change="picHandleChange"
+                >
+                  <a-button> <a-icon type="upload" /> 上传图片 </a-button>
+                </a-upload>
               </a-form-item>
             </div>
           </a-comment>
@@ -64,7 +74,9 @@ export default {
     return {
       chatList: [],
       contactList: [],
+      fileList: [],
       contentValue: '',
+      uploadShow: true,
       currentItem: null
     }
   },
@@ -82,16 +94,23 @@ export default {
     },
     onChange (item) {
       this.currentItem = item
-      console.log(item)
       this.$get(`/cos/chat-info/record`, {
         expertCode: item.userCode,
         enterpriseCode: item.pharmacyCode
       }).then((r) => {
         this.chatList = r.data.data
-        console.log(this.chatList)
       })
     },
+    picHandleChange ({ fileList }) {
+      this.fileList = fileList
+      console.log(JSON.stringify(this.fileList))
+      if (this.fileList && this.fileList[0].status === 'done') {
+        this.contentValue = this.fileList[0].response
+        this.handleSubmit()
+      }
+    },
     handleSubmit () {
+      this.uploadShow = false
       if (this.contentValue === '') {
         this.$message.error('请输入消息')
         return false
@@ -104,6 +123,9 @@ export default {
       }).then((r) => {
         this.contentValue = ''
         this.onChange(this.currentItem)
+        this.fileList = []
+        this.uploadShow = true
+        console.log(this.fileList)
       })
     }
   }

@@ -29,8 +29,8 @@ public class PharmacyInventoryController {
      * @return 结果
      */
     @GetMapping("/drug/list")
-    public R selectPharmacyDrugList(@RequestParam(value = "key", required = false) String key) {
-        return R.ok(pharmacyInventoryService.selectPharmacyDrugList(key));
+    public R selectPharmacyDrugList(@RequestParam(value = "key", required = false) String key, @RequestParam(value = "key", required = false) String prescriptionFlag) {
+        return R.ok(pharmacyInventoryService.selectPharmacyDrugList(key, prescriptionFlag));
     }
 
     /**

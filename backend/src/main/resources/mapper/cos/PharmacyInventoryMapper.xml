@@ -86,5 +86,8 @@
         <if test="key != null and key != ''">
             AND di.name LIKE CONCAT('%',#{key},'%')
         </if>
+        <if test="prescriptionFlag != null and prescriptionFlag != '' and prescriptionFlag != '-1'">
+            AND di.prescription_flag = #{prescriptionFlag}
+        </if>
     </select>
 </mapper>

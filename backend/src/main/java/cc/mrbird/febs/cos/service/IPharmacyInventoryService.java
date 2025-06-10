@@ -30,7 +30,7 @@ public interface IPharmacyInventoryService extends IService<PharmacyInventory> {
      * @param key key
      * @return 结果
      */
-    List<LinkedHashMap<String, Object>> selectPharmacyDrugList(String key);
+    List<LinkedHashMap<String, Object>> selectPharmacyDrugList(String key, String prescriptionFlag);
 
     /**
      * 批量设置库房库存

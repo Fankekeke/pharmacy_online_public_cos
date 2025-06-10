@@ -7,6 +7,19 @@
       </a-button>
     </a-col>
     <a-col :span="24"></a-col>
+    <a-col :span="24">
+      <a-radio-group button-style="solid" v-model="prescriptionFlag" @change="onChange">
+        <a-radio-button value="-1">
+          全部
+        </a-radio-button>
+        <a-radio-button value="0">
+          处方药
+        </a-radio-button>
+        <a-radio-button value="1">
+          非处方药
+        </a-radio-button>
+      </a-radio-group>
+    </a-col>
     <a-col :span="4" v-for="(item, index) in drugList" :key="index" style="margin-bottom: 15px">
       <div style="width: 100%;margin-bottom: 15px;text-align: left;box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;">
         <a-card :bordered="false" @click="drugDetail(item)" hoverable>
@@ -49,6 +62,7 @@ export default {
   data () {
     return {
       drugList: [],
+      prescriptionFlag: '-1',
       drugView: {
         visiable: false,
         data: null
@@ -95,8 +109,11 @@ export default {
       this.drugView.visiable = true
       this.drugView.data = row
     },
+    onChange (e) {
+      this.selectDrugList()
+    },
     selectDrugList () {
-      this.$get(`/cos/pharmacy-inventory/drug/list`, {key: this.key}).then((r) => {
+      this.$get(`/cos/pharmacy-inventory/drug/list`, {key: this.key, prescriptionFlag: this.prescriptionFlag}).then((r) => {
         this.drugList = r.data.data
       })
     }

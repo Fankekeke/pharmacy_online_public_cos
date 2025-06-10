@@ -51,8 +51,8 @@ public class PharmacyInventoryServiceImpl extends ServiceImpl<PharmacyInventoryM
      * @return 结果
      */
     @Override
-    public List<LinkedHashMap<String, Object>> selectPharmacyDrugList(String key) {
-        return baseMapper.selectPharmacyDrugList(key);
+    public List<LinkedHashMap<String, Object>> selectPharmacyDrugList(String key, String prescriptionFlag) {
+        return baseMapper.selectPharmacyDrugList(key, prescriptionFlag);
     }
 
     /**
