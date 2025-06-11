@@ -23,9 +23,10 @@
           >
             <a-list-item slot="renderItem" slot-scope="item, index">
               <a-comment :author="item.type == 1 ? item.expertName : item.enterpriseName">
-                <p slot="content">
-                  {{ item.content }}
+                <p slot="content" v-if="item.content.includes('SA')">
+                  <img alt="example" style="width: 100%" :src="'http://127.0.0.1:9527/imagesWeb/' + item.content"/>
                 </p>
+                <p slot="content" v-else style="padding: 10px 15px 0 15px">{{ item.content }}</p>
                 <a-tooltip slot="datetime" :title="item.createDate">
                   <span>{{ item.createDate }}</span>
                 </a-tooltip>
@@ -39,8 +40,17 @@
               </a-form-item>
               <a-form-item>
                 <a-button html-type="submit" type="primary" @click="handleSubmit">
-                  Add Comment
+                  添加回复
                 </a-button>
+                <a-upload
+                  v-if="uploadShow"
+                  style="margin-left: 20px"
+                  name="avatar"
+                  action="http://127.0.0.1:9527/file/fileUpload/"
+                  @change="picHandleChange"
+                >
+                  <a-button> <a-icon type="upload" /> 上传图片 </a-button>
+                </a-upload>
               </a-form-item>
             </div>
           </a-comment>
@@ -65,6 +75,7 @@ export default {
       chatList: [],
       contactList: [],
       contentValue: '',
+      uploadShow: true,
       currentItem: null
     }
   },
@@ -90,7 +101,16 @@ export default {
         console.log(this.chatList)
       })
     },
+    picHandleChange ({ fileList }) {
+      this.fileList = fileList
+      console.log(JSON.stringify(this.fileList))
+      if (this.fileList && this.fileList[0].status === 'done') {
+        this.contentValue = this.fileList[0].response
+        this.handleSubmit()
+      }
+    },
     handleSubmit () {
+      this.uploadShow = false
       if (this.contentValue === '') {
         this.$message.error('请输入消息')
         return false
@@ -103,17 +123,19 @@ export default {
       }).then((r) => {
         this.contentValue = ''
         this.onChange(this.currentItem)
+        this.fileList = []
+        this.uploadShow = true
       })
     }
   }
 }
 </script>
 <style scoped>
-  /deep/ .ant-list-item {
-    padding: 0;
-  }
+/deep/ .ant-list-item {
+  padding: 0;
+}
 
-  /deep/ .ant-comment-inner {
-    padding: 15px 0 0 0;
-  }
+/deep/ .ant-comment-inner {
+  padding: 15px 0 0 0;
+}
 </style>
